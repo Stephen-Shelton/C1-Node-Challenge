@@ -10,9 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.15.3",
-    "express": "^4.14.0",
-    "request": "^2.79.0",
-    "xmlhttprequest": "^1.8.0",
-    "yargs": "^6.4.0"
+    "express": "^4.14.0"
   }
 }

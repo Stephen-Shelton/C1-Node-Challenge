@@ -3,31 +3,45 @@
   <head>
     <meta charset="utf-8">
     <title>C1 Coding Challenge</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+      body {
+        margin-left: 20px;
+      }
+    </style>
   </head>
   <body>
-    <p>
+    <h3>
       Click on buttons to get views of transactions!
-    </p>
+    </h3>
     <div>
       <a href="/summary">
-        <button>Transactions Summary</button>
+        <button class="btn btn-primary">Transactions Summary</button>
       </a>
     </div>
     </br>
 
     <div>
       <a href="/ignore-donuts">
-        <button>Transactions, ignore donuts</button>
+        <button class="btn btn-primary">Transactions, ignore donuts</button>
       </a>
     </div>
     </br>
 
     <div>
       <a href="/ignore-cc-payments">
-        <button>Transactions, ignore cc payments</button>
+        <button class="btn btn-primary">Transactions, ignore cc payments</button>
       </a>
     </div>
     </br>
 
+    <div>
+      <a href="/ignore-donuts-and-cc-payments">
+        <button class="btn btn-primary">Transactions, ignore donuts and cc payments</button>
+      </a>
+    </div>
+    </br>
   </body>
 </html>
