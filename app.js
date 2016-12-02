@@ -7,24 +7,11 @@ var app = express();
 
 app.use(express.static(__dirname));
 
-// //CONFIGURE YARGS
-// const argv = yargs
-//   .options({
-//     a: {
-//       describe: 'Address to fetch weather',
-//       string: true //makes us parse arg as a string
-//     }
-//   })
-//   .help()
-//   .alias('help', 'h') //set alias for help directly
-//   .argv;
-
-
 app.get('/', (req, res) => {
   res.sendFile('index.html');
 });
 
-var config = {
+var requestConfig = {
   url: 'https://2016.api.levelmoney.com/api/v2/core/get-all-transactions',
   method: 'POST',
   headers: {
@@ -42,29 +29,56 @@ var config = {
   }
 };
 
+//criteria:
+//if amount is negative, it's spend regardless of account
+//if amount is positive, it's income regardless of account
 app.get('/summary', (req, res) => {
-  axios.request(config)
+  axios.request(requestConfig)
     .then((response) => {
       var data = response.data;
-      var finalJSON = {};
+      var finalJSON = {
+        average: {
+          spent: 0,
+          income: 0
+        }
+      };
 
       data.transactions.forEach((transaction, i) => {
-        var transactionTime = transaction['transaction-time'];
-        var endIndexOfDate = transactionTime.lastIndexOf('-');
-        var dateStr = transactionTime.slice(0, endIndexOfDate);
+        var dateStr = getDateProp(transaction);
+        var amount = transaction.amount;
 
-        // {"2014-10": {"spent": "$200.00", "income": "$500.00"}
-        if (finalJSON[dateStr]) {
-          finalJSON[dateStr] += transaction.amount;
+        //add amount to average income or average spent
+        if (amount > 0) {
+          finalJSON.average.income += amount;
         } else {
-          finalJSON[dateStr] = transaction.amount;
+          finalJSON.average.spent += amount;
+        }
+
+        //add amount to month's totals
+        if (finalJSON[dateStr]) {
+          if (amount > 0) {
+            finalJSON[dateStr].income += amount;
+          } else {
+            finalJSON[dateStr].spent += amount;
+          }
+        } else {
+          finalJSON[dateStr] = {
+            spent: 0,
+            income: 0
+          };
+
+          if (amount > 0) {
+            finalJSON[dateStr].income = amount;
+          } else {
+            finalJSON[dateStr].spent = amount;
+          }
         }
       });
 
-
+      calcAverage(finalJSON);
+      amntsToStrings(finalJSON);
       finalJSON = JSON.stringify(finalJSON);
-      res.send(data);
-
+      res.send(finalJSON);
     })
     .catch((error) => {
       if (error) {
@@ -159,3 +173,23 @@ app.listen(port, () => {
 //   "merchant": "At&T Bill Payment",
 //   "transaction-time": "2014-10-08T10:41:00.000Z"
 // },
+
+//HELPER FUNCTIONS
+function amntsToStrings(obj) {
+  for (var prop in obj) {
+    obj[prop].spent = `$${Math.round(obj[prop].spent / -100)}.00`;
+    obj[prop].income = `$${Math.round(obj[prop].income / 100)}.00`;
+  }
+}
+
+function getDateProp(transaction) {
+  var transactionTime = transaction['transaction-time'];
+  var endIndexOfDate = transactionTime.lastIndexOf('-');
+  return transactionTime.slice(0, endIndexOfDate);
+}
+
+function calcAverage(obj) {
+  var monthsCount = Object.keys(obj).length - 1;
+  obj.average.spent = obj.average.spent / monthsCount;
+  obj.average.income = obj.average.income / monthsCount;
+}
